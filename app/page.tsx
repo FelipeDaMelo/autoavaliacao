@@ -1,103 +1,122 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { db } from '../lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { FiLogIn, FiArrowRight } from 'react-icons/fi'; // Importando novos ícones
+
+export default function LoginPage() {
+  const [matricula, setMatricula] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    if (!matricula.trim()) {
+      setError('Por favor, digite sua matrícula.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const alunosRef = collection(db, 'alunos');
+      const q = query(alunosRef, where("matricula", "==", matricula.trim()));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setError('Matrícula não encontrada. Verifique os dados e tente novamente.');
+      } else {
+        const alunoDoc = querySnapshot.docs[0];
+        const alunoData = alunoDoc.data();
+        sessionStorage.setItem('alunoMatricula', alunoData.matricula);
+        sessionStorage.setItem('alunoNome', alunoData.nome);
+        sessionStorage.setItem('alunoGrupoId', alunoData.idGrupo);
+        router.push('/avaliacao');
+      }
+    } catch (err) {
+      console.error("Erro ao buscar aluno:", err);
+      setError('Ocorreu um erro ao conectar com o servidor. Tente mais tarde.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- O CÓDIGO DO FORMULÁRIO COMEÇA AQUI ---
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    // MODIFICADO: Fundo com um padrão SVG sutil
+    <main 
+      className="min-h-screen flex items-center justify-center p-4 bg-slate-100" 
+      style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke-width='2' stroke='%23e2e8f0'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e\")" }}
+    >
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        {/* Seção da Imagem */}
+        <div className="w-full">
+          <Image
+            src="/logo.png"
+            alt="Ilustração do Projeto STEAM"
+            width={1920}
+            height={1080}
+            layout="responsive"
+            priority
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Seção do Formulário */}
+        <div className="p-8 sm:p-10">
+          <div className="w-full">
+            <div className="text-center mb-8">
+              {/* MODIFICADO: Tipografia com mais destaque */}
+              <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">Autoavaliação de Alunos</h1>
+              <p className="mt-3 text-lg text-gray-500">Entre com sua matrícula para começar.</p>
+            </div>
+            
+            <form onSubmit={handleLogin} className="space-y-6">
+              {/* MODIFICADO: Input com ícone */}
+              <div className="relative">
+                <FiLogIn className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  id="matricula"
+                  name="matricula"
+                  type="text"
+                  value={matricula}
+                  onChange={(e) => setMatricula(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  placeholder="Digite sua matrícula aqui"
+                  disabled={isLoading}
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm text-center text-red-600 font-medium">{error}</p>
+              )}
+
+              <div>
+                {/* MODIFICADO: Botão com ícone */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-x-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 transition-transform hover:scale-105"
+                >
+                  {isLoading ? 'Entrando...' : 'Entrar'}
+                  {!isLoading && <FiArrowRight size={20} />}
+                </button>
+              </div>
+            </form>
+
+            <footer className="mt-12 text-center text-gray-500 text-xs">
+              <p>Site desenvolvido por Prf. Dr. Felipe Damas Melo.</p>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
