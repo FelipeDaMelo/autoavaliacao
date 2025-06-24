@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { FiLogIn, FiArrowRight } from 'react-icons/fi'; // Importando novos ícones
+import { FiLogIn, FiArrowRight } from 'react-icons/fi';
 
 export default function LoginPage() {
   const [matricula, setMatricula] = useState('');
@@ -47,16 +47,13 @@ export default function LoginPage() {
     }
   };
 
-  // --- O CÓDIGO DO FORMULÁRIO COMEÇA AQUI ---
   return (
-    // MODIFICADO: Fundo com um padrão SVG sutil
     <main 
       className="min-h-screen flex items-center justify-center p-4 bg-slate-100" 
       style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke-width='2' stroke='%23e2e8f0'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e\")" }}
     >
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
         
-        {/* Seção da Imagem */}
         <div className="w-full">
           <Image
             src="/logo.png"
@@ -68,17 +65,16 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Seção do Formulário */}
         <div className="p-8 sm:p-10">
           <div className="w-full">
+            {/* === BLOCO MODIFICADO === */}
             <div className="text-center mb-8">
-              {/* MODIFICADO: Tipografia com mais destaque */}
-              <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">Autoavaliação de Alunos</h1>
-              <p className="mt-3 text-lg text-gray-500">Entre com sua matrícula para começar.</p>
+              <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">Autoavaliação de Performance</h1>
+              <p className="mt-3 text-lg text-gray-500">Projeto COP 30 | Disciplina FIO 2025/1</p>
             </div>
+            {/* ======================= */}
             
             <form onSubmit={handleLogin} className="space-y-6">
-              {/* MODIFICADO: Input com ícone */}
               <div className="relative">
                 <FiLogIn className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -89,7 +85,7 @@ export default function LoginPage() {
                   onChange={(e) => setMatricula(e.target.value)}
                   required
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                  placeholder="Digite sua matrícula aqui"
+                  placeholder="Digite sua matrícula"
                   disabled={isLoading}
                 />
               </div>
@@ -99,7 +95,6 @@ export default function LoginPage() {
               )}
 
               <div>
-                {/* MODIFICADO: Botão com ícone */}
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -111,8 +106,8 @@ export default function LoginPage() {
               </div>
             </form>
 
-            <footer className="mt-12 text-center text-gray-500 text-xs">
-              <p>Site desenvolvido por Prf. Dr. Felipe Damas Melo.</p>
+              <footer className="mt-12 text-center text-gray-500 text-xs">
+              <p>Site desenvolvido por Prof. Dr. Felipe Damas Melo.</p>
             </footer>
           </div>
         </div>
