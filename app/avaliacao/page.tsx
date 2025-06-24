@@ -115,7 +115,7 @@ export default function AvaliacaoPage() {
     setError('');
 
     if (!respostaDissertativa.trim()) {
-      setError("A resposta da autoavaliação não pode estar em branco. Por favor, preencha o campo.");
+      setError("Este campo também será avaliado. Por favor, preencha o campo.");
       document.getElementById('dissertativa')?.focus();
       return;
     }
