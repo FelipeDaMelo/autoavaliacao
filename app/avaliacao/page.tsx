@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // Importar Link para o botão de voltar
+import Link from 'next/link';
 import { db } from '../../lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, addDoc, limit } from 'firebase/firestore'; // Importar 'limit'
+import { doc, getDoc, collection, query, where, getDocs, addDoc, limit } from 'firebase/firestore';
 
 import StarRating from '../components/StarRating';
-import { FaRegThumbsUp, FaHourglassHalf } from 'react-icons/fa'; // Importar ícones
+import { FaRegThumbsUp, FaHourglassHalf } from 'react-icons/fa';
 
-// --- DEFINIÇÕES E CONSTANTES (sem alterações) ---
+// --- DEFINIÇÕES E CONSTANTES ---
 type Colega = { matricula: string; nome: string };
 const CRITERIOS_PROCESSO = { comunicacao: "Comunicação", comprometimento: "Comprometimento", trabalhoEquipe: "Trabalho em Equipe / Colaboração" };
 const CRITERIOS_EXECUCAO = { qualidade: "Qualidade da Entrega", proatividade: "Proatividade", presenca: "Presença e Engajamento" };
@@ -25,10 +25,8 @@ export default function AvaliacaoPage() {
   const [alunoNome, setAlunoNome] = useState('');
   const [alunoMatricula, setAlunoMatricula] = useState('');
   const [colegas, setColegas] = useState<Colega[]>([]);
-  // MODIFICADO: isLoading agora tem um tipo mais descritivo
   const [loadingState, setLoadingState] = useState<'checking' | 'loading' | 'done'>('checking');
   const [error, setError] = useState('');
-  // NOVO: Estado para controlar se o aluno já respondeu
   const [hasResponded, setHasResponded] = useState(false);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacoes>({});
   const [respostaDissertativa, setRespostaDissertativa] = useState('');
@@ -51,19 +49,16 @@ export default function AvaliacaoPage() {
 
     const checkAndFetchData = async () => {
       try {
-        // ETAPA 1: VERIFICAR SE JÁ EXISTE UMA AVALIAÇÃO
         const avaliacoesRef = collection(db, "avaliacoes");
         const q = query(avaliacoesRef, where("avaliadorMatricula", "==", matricula), limit(1));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-          // Se encontrou, o aluno já respondeu.
           setHasResponded(true);
           setLoadingState('done');
-          return; // Para a execução aqui.
+          return;
         }
 
-        // ETAPA 2: Se não encontrou, continua para carregar os dados do formulário
         setLoadingState('loading');
         
         const initialRatings: Avaliacoes = {};
@@ -110,50 +105,42 @@ export default function AvaliacaoPage() {
     checkAndFetchData();
   }, [router]);
 
-  // --- LÓGICA DE ENVIO (sem alterações) ---
+  // --- LÓGICA DE ENVIO ---
   const handleRatingChange = (matricula: string, criterio: string, novaNota: number) => {
     setAvaliacoes(prev => ({ ...prev, [matricula]: { ...prev[matricula], [criterio]: novaNota } }));
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError(''); // Limpa erros antigos no início
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-  // --- NOVA VALIDAÇÃO ROBUSTA ---
-  if (!respostaDissertativa.trim()) {
-    setError("A resposta da autoavaliação não pode estar em branco. Por favor, preencha o campo.");
-    
-    // Opcional: Foca no campo de texto para ajudar o usuário
-    document.getElementById('dissertativa')?.focus();
-    
-    return; // Para a execução da função aqui, impedindo o envio.
-  }
-
-  // Se a validação passar, o código continua normalmente...
-  setIsSubmitting(true);
-
-  try {
-    // Itera sobre todas as pessoas que foram avaliadas (colegas + o próprio aluno)
-    for (const matriculaAvaliada of Object.keys(avaliacoes)) {
-      await addDoc(collection(db, "avaliacoes"), {
-        avaliadorMatricula: alunoMatricula,
-        avaliadoMatricula: matriculaAvaliada,
-        notas: avaliacoes[matriculaAvaliada],
-        // Apenas a autoavaliação terá a parte dissertativa
-        ...(matriculaAvaliada === alunoMatricula && {
-          respostaDissertativa: respostaDissertativa, // Salva a resposta já validada
-          perguntaFeita: perguntaSorteada,
-        }),
-        timestamp: new Date()
-      });
+    if (!respostaDissertativa.trim()) {
+      setError("A resposta da autoavaliação não pode estar em branco. Por favor, preencha o campo.");
+      document.getElementById('dissertativa')?.focus();
+      return;
     }
-    router.push('/sucesso');
-  } catch (err) {
-    console.error("Erro ao enviar avaliação:", err);
-    setError("Ocorreu um erro ao enviar sua avaliação. Tente novamente.");
-    setIsSubmitting(false);
-  }
-};
+
+    setIsSubmitting(true);
+    try {
+      for (const matriculaAvaliada of Object.keys(avaliacoes)) {
+        await addDoc(collection(db, "avaliacoes"), {
+          avaliadorMatricula: alunoMatricula,
+          avaliadoMatricula: matriculaAvaliada,
+          notas: avaliacoes[matriculaAvaliada],
+          ...(matriculaAvaliada === alunoMatricula && {
+            respostaDissertativa: respostaDissertativa,
+            perguntaFeita: perguntaSorteada,
+          }),
+          timestamp: new Date()
+        });
+      }
+      router.push('/sucesso');
+    } catch (err) {
+      console.error("Erro ao enviar avaliação:", err);
+      setError("Ocorreu um erro ao enviar sua avaliação. Tente novamente.");
+      setIsSubmitting(false);
+    }
+  };
 
   // --- RENDERIZAÇÃO CONDICIONAL ---
   if (loadingState === 'checking' || loadingState === 'loading') {
@@ -166,14 +153,8 @@ const handleSubmit = async (e: React.FormEvent) => {
       </main>
     );
   }
-
-  if (error) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-100">
-        <p className="text-red-500">{error}</p>
-      </main>
-    );
-  }
+  
+  // REMOVIDO: Bloco `if (error)` que estava aqui foi removido.
   
   if (hasResponded) {
     return (
@@ -195,7 +176,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     );
   }
 
-  // --- RENDERIZAÇÃO DO FORMULÁRIO (sem alterações) ---
+  // --- RENDERIZAÇÃO DO FORMULÁRIO ---
   const CriteriosSection = ({ title, criterios, matricula }: { title: string, criterios: { [key: string]: string }, matricula: string }) => (
     <div>
       <h4 className="text-lg font-semibold text-gray-700 mt-6 mb-4">{title}</h4>
@@ -266,6 +247,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </section>
        
           <div className="py-4">
+            {/* Bloco de erro posicionado corretamente */}
             {error && (
               <div className="mb-4 text-center p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg">
                 <p>{error}</p>
