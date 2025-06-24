@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link'; // 1. Adicione esta importação
 import { FaCheckCircle, FaAward } from 'react-icons/fa';
 
 export default function SucessoPage() {
@@ -39,13 +40,23 @@ export default function SucessoPage() {
           <h2 className="text-2xl font-semibold">Uma mensagem dos seus professores</h2>
           <p className="text-lg leading-relaxed max-w-prose mx-auto">
             Este foi um trabalho incrível e desafiador. Sabemos do esforço e da dedicação de cada um, e estamos muito satisfeitos com a qualidade e os resultados que vocês alcançaram. Parabéns pelo excelente projeto!
-</p>
+          </p>
 
-          {/* CORRIGIDO: A assinatura agora está em um elemento <p> separado */}
           <p className="text-right font-semibold italic mt-4 pr-4">
             Professores Felipe e Waguinho.
           </p>
         </div>
+
+        {/* 2. ADICIONE ESTE BLOCO DE CÓDIGO PARA O BOTÃO */}
+        <div className="mt-8 flex justify-center">
+            <Link 
+                href="/" 
+                className="inline-block px-8 py-3 bg-white text-indigo-600 font-semibold rounded-lg shadow-md hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+                Voltar para a Página Inicial
+            </Link>
+        </div>
+
       </div>
     </main>
   );
