@@ -70,7 +70,7 @@ export default function LoginPage() {
             {/* === BLOCO MODIFICADO === */}
             <div className="text-center mb-8">
               <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">Autoavaliação de Performance</h1>
-              <p className="mt-3 text-lg text-gray-500">Projeto Automação Assistiva | Disciplina FIO 2025/2</p>
+              <p className="mt-3 text-lg text-gray-500">Projeto ODS 3, 8, 11 1 12 | Disciplina FIO 2026/1</p>
             </div>
             {/* ======================= */}
             
