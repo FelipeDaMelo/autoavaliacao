@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../../lib/firebase';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
-// --- DEFINIÇÃO DOS TIPOS DE DADOS E CRITÉRIOS ---
+// --- DEFINIÇÃO DOS TIPOS DE DADOS E CRITÉRIOS ---2563
 
 type Aluno = {
   id: string;
@@ -62,7 +62,7 @@ const SENHA_CORRETA = "123456"; // Lembre-se de mudar esta senha
 export default function AdminPage() {
   const [senhaDigitada, setSenhaDigitada] = useState('');
   const [autenticado, setAutenticado] = useState(false);
-  
+
   const [alunos, setAlunos] = useState<AlunoComResultados[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -103,7 +103,7 @@ export default function AdminPage() {
           const avaliacoesRecebidas = listaAvaliacoes.filter(
             aval => aval.avaliadoMatricula === aluno.matricula
           );
-          
+
           const mediasCriterios: { [key: string]: number } = {};
           const todosCriterios = [...CRITERIOS_PROCESSO, ...CRITERIOS_EXECUCAO];
           todosCriterios.forEach(criterio => {
@@ -158,7 +158,7 @@ export default function AdminPage() {
   // --- LÓGICA DE AVALIAÇÃO DO VÍDEO ---
   const handleNotaVideoChange = async (grupoId: string, indexCriterio: number, novaPorcentagem: number) => {
     if (!grupoId) return;
-    
+
     // Atualiza a interface otimisticamente (para todo o grupo)
     let notasParaSalvar = [0, 0, 0, 0];
     setAlunos(prevAlunos => prevAlunos.map(aluno => {
@@ -219,91 +219,90 @@ export default function AdminPage() {
           {alunos
             .sort((a, b) => a.nome.localeCompare(b.nome))
             .map((aluno) => (
-            // MODIFICADO: O className agora é condicional para mudar a cor
-            <div 
-              key={aluno.id} 
-              className={`p-6 rounded-lg shadow-md hover:shadow-xl transition-all flex flex-col border-2 
-                ${aluno.hasResponded 
-                  ? 'bg-green-50 border-green-200' 
-                  : 'bg-red-50 border-red-200'
-                }`}
-            >
-              <h2 className="text-xl font-bold text-gray-900">{aluno.nome}</h2>
-              
-              <div className="mt-4 pt-4 border-t space-y-3">
-                <div>
-                  <p className="text-sm font-semibold text-gray-600">Habilidades de Processo:</p>
-                  <p className="text-2xl font-light text-indigo-600">
-                    {aluno.pontosProcesso.toFixed(2)} / 2.5
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-600">Habilidades de Execução:</p>
-                  <p className="text-2xl font-light text-green-600">
-                    {aluno.pontosExecucao.toFixed(2)} / 2.5
-                  </p>
-                </div>
-              </div>
+              // MODIFICADO: O className agora é condicional para mudar a cor
+              <div
+                key={aluno.id}
+                className={`p-6 rounded-lg shadow-md hover:shadow-xl transition-all flex flex-col border-2 
+                ${aluno.hasResponded
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                  }`}
+              >
+                <h2 className="text-xl font-bold text-gray-900">{aluno.nome}</h2>
 
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm font-semibold text-gray-600 mb-1">Vídeo do Grupo:</p>
-                {aluno.youtubeLink ? (
-                  <>
-                    <a href={aluno.youtubeLink} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1 mb-4">
-                      ▶ Assistir no YouTube
-                    </a>
-                    
-                    {/* CALCULADORA DE RUBRICA */}
-                    <div className="bg-white p-3 rounded border border-gray-200">
-                      <div className="flex justify-between items-center mb-3">
-                        <p className="text-xs font-bold text-gray-700">Avaliação do Professor:</p>
-                        <p className="text-sm font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded">
-                          {((aluno.notasVideo || [0,0,0,0]).reduce((acc, val) => acc + (val / 100) * VALOR_POR_CRITERIO, 0)).toFixed(2)} / 2.50
-                        </p>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {RUBRICA_CRITERIOS.map((criterioNome, idx) => (
-                          <div key={idx} className="flex flex-col">
-                            <span className="text-[10px] uppercase font-bold text-gray-500 mb-1">{criterioNome}</span>
-                            <div className="flex gap-1">
-                              {VALORES_PERCENTUAIS.map(pct => {
-                                const notas = aluno.notasVideo || [0, 0, 0, 0];
-                                // Se não tem nota lançada ainda no banco, o botão de 0% deve ficar ativo como default
-                                const isSelected = (aluno.notasVideo && notas[idx] === pct) || (!aluno.notasVideo && pct === 0);
-                                return (
-                                  <button
-                                    key={pct}
-                                    onClick={() => handleNotaVideoChange(aluno.idGrupo || "", idx, pct)}
-                                    className={`flex-1 text-[11px] py-1 px-1 rounded transition-colors border ${
-                                      isSelected 
-                                      ? 'bg-indigo-600 text-white border-indigo-600 font-bold' 
-                                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
-                                    }`}
-                                  >
-                                    {pct}%
-                                  </button>
-                                );
-                              })}
+                <div className="mt-4 pt-4 border-t space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600">Habilidades de Processo:</p>
+                    <p className="text-2xl font-light text-indigo-600">
+                      {aluno.pontosProcesso.toFixed(2)} / 2.5
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600">Habilidades de Execução:</p>
+                    <p className="text-2xl font-light text-green-600">
+                      {aluno.pontosExecucao.toFixed(2)} / 2.5
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Vídeo do Grupo:</p>
+                  {aluno.youtubeLink ? (
+                    <>
+                      <a href={aluno.youtubeLink} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1 mb-4">
+                        ▶ Assistir no YouTube
+                      </a>
+
+                      {/* CALCULADORA DE RUBRICA */}
+                      <div className="bg-white p-3 rounded border border-gray-200">
+                        <div className="flex justify-between items-center mb-3">
+                          <p className="text-xs font-bold text-gray-700">Avaliação do Professor:</p>
+                          <p className="text-sm font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded">
+                            {((aluno.notasVideo || [0, 0, 0, 0]).reduce((acc, val) => acc + (val / 100) * VALOR_POR_CRITERIO, 0)).toFixed(2)} / 2.50
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          {RUBRICA_CRITERIOS.map((criterioNome, idx) => (
+                            <div key={idx} className="flex flex-col">
+                              <span className="text-[10px] uppercase font-bold text-gray-500 mb-1">{criterioNome}</span>
+                              <div className="flex gap-1">
+                                {VALORES_PERCENTUAIS.map(pct => {
+                                  const notas = aluno.notasVideo || [0, 0, 0, 0];
+                                  // Se não tem nota lançada ainda no banco, o botão de 0% deve ficar ativo como default
+                                  const isSelected = (aluno.notasVideo && notas[idx] === pct) || (!aluno.notasVideo && pct === 0);
+                                  return (
+                                    <button
+                                      key={pct}
+                                      onClick={() => handleNotaVideoChange(aluno.idGrupo || "", idx, pct)}
+                                      className={`flex-1 text-[11px] py-1 px-1 rounded transition-colors border ${isSelected
+                                          ? 'bg-indigo-600 text-white border-indigo-600 font-bold'
+                                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                      {pct}%
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-red-500 italic">Pendente</p>
-                )}
-              </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-red-500 italic">Pendente</p>
+                  )}
+                </div>
 
-              <div className="mt-4 pt-4 border-t flex-grow flex flex-col">
-                <p className="font-semibold text-gray-800">{aluno.pergunta}</p>
-                <div className="mt-1 text-sm text-gray-700 bg-white p-3 rounded-md h-32 overflow-y-auto flex-grow">
-                  {aluno.autoavaliacao}
+                <div className="mt-4 pt-4 border-t flex-grow flex flex-col">
+                  <p className="font-semibold text-gray-800">{aluno.pergunta}</p>
+                  <div className="mt-1 text-sm text-gray-700 bg-white p-3 rounded-md h-32 overflow-y-auto flex-grow">
+                    {aluno.autoavaliacao}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </main>
