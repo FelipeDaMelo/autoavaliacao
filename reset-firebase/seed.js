@@ -1,65 +1,54 @@
-// Importa o SDK Admin do Firebase
-const admin = require('firebase-admin');
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 // Importa a chave de serviço que você baixou
 const serviceAccount = require('./serviceAccountKey.json');
 
 // Inicializa o app do Firebase com as credenciais
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+initializeApp({
+  credential: cert(serviceAccount)
 });
 
 // Pega a referência do banco de dados Firestore
-const db = admin.firestore();
+const db = getFirestore();
 
 // --- NOVOS DADOS PARA INSERIR ---
 
 const alunosData = [
-  { "matricula": "10720200083", "nome": "Beatriz Kliemann Amaral", "idGrupo": "grupo-1" },
-  { "matricula": "10720120018", "nome": "Carolina Vieira Vidoto", "idGrupo": "grupo-1" },
-  { "matricula": "10720240188", "nome": "Geovana Fortunato Rodrigues", "idGrupo": "grupo-1" },
-  { "matricula": "10720240037", "nome": "Mariana Salmazo Carmello", "idGrupo": "grupo-1" },
-  { "matricula": "10720150041", "nome": "Pietra Teixeira Monteiro", "idGrupo": "grupo-1" },
-  { "matricula": "10720150018", "nome": "Ana Luiza Barbosa de Araujo", "idGrupo": "grupo-2" },
-  { "matricula": "10720240208", "nome": "Lara Rangel Lopes", "idGrupo": "grupo-2" },
-  { "matricula": "10720200193", "nome": "Lorena Luni Calvo", "idGrupo": "grupo-2" },
-  { "matricula": "10720240092", "nome": "Pietra Grave Oliveira", "idGrupo": "grupo-2" },
-  { "matricula": "10720150029", "nome": "Sofia Xavier Rosa", "idGrupo": "grupo-2" },
-  { "matricula": "10720220150", "nome": "Ana Clara de Toledo Calil", "idGrupo": "grupo-3" },
-  { "matricula": "10720110206", "nome": "Ana Sofia Susuki Schliemann", "idGrupo": "grupo-3" },
-  { "matricula": "10720200093", "nome": "Julia Aranda Maltez", "idGrupo": "grupo-3" },
-  { "matricula": "10720240052", "nome": "Natália Amaral de Medeiros", "idGrupo": "grupo-3" },
-  { "matricula": "10720200219", "nome": "Rafael Ismael Drigo", "idGrupo": "grupo-3" },
-  { "matricula": "10720230078", "nome": "Caio Cesar Lopes de Oliveira Gomes", "idGrupo": "grupo-4" },
-  { "matricula": "10720190192", "nome": "Gustavo Gabriel Rodrigues de Araujo", "idGrupo": "grupo-4" },
-  { "matricula": "10720130190", "nome": "João Pedro Zardo do Nascimento", "idGrupo": "grupo-4" },
-  { "matricula": "10720240216", "nome": "Letícia Santos Carvalho", "idGrupo": "grupo-4" },
-  { "matricula": "10720240182", "nome": "Luca Parisi Curci Fuim", "idGrupo": "grupo-4" },
-  { "matricula": "10720120163", "nome": "Enzo Farina Cortez de Napoli", "idGrupo": "grupo-5" },
-  { "matricula": "10720210073", "nome": "Lara Molinari Batista", "idGrupo": "grupo-5" },
-  { "matricula": "10720240273", "nome": "Maria Eduarda Farnesi Cerqueira de Neiva", "idGrupo": "grupo-5" },
-  { "matricula": "10720160111", "nome": "Mariana Venturini Souza", "idGrupo": "grupo-5" },
-  { "matricula": "10720130245", "nome": "Victor Santana Haussmann Zago", "idGrupo": "grupo-5" },
-  { "matricula": "10720220191", "nome": "Allan Kenzo Dotoli", "idGrupo": "grupo-6" },
-  { "matricula": "10720150138", "nome": "Gabriel Ricarte Mendonça Evangelista", "idGrupo": "grupo-6" },
-  { "matricula": "10720230047", "nome": "João Paulo Mileo Vicente", "idGrupo": "grupo-6" },
-  { "matricula": "10720210224", "nome": "Mateus Galvez Moroz", "idGrupo": "grupo-6" },
-  { "matricula": "10720150143", "nome": "Otávio Bonato Passerine", "idGrupo": "grupo-6" },
-  { "matricula": "10720250144", "nome": "Gabriela Duarte de Albuquerque", "idGrupo": "grupo-7" },
-  { "matricula": "10720240191", "nome": "Lorena Marinho Cocati", "idGrupo": "grupo-7" },
-  { "matricula": "10720220160", "nome": "Lucas Fachini Bessa", "idGrupo": "grupo-7" },
-  { "matricula": "10720140205", "nome": "Matteo Ferreira", "idGrupo": "grupo-7" },
-  { "matricula": "10720240292", "nome": "Raphael Barranqueiro Pereira", "idGrupo": "grupo-7" }
+  { "matricula": "10720220124", "nome": "Felipe Heinrich Spina Abib Matos", "idGrupo": "grupo-1" },
+  { "matricula": "10720220100", "nome": "Guilherme Costa Carvalho Ray", "idGrupo": "grupo-1" },
+  { "matricula": "10720200228", "nome": "Jose Afonso Pinto Neto", "idGrupo": "grupo-1" },
+  { "matricula": "10720160201", "nome": "Nicholas Meneses Ferreira Rodrigues", "idGrupo": "grupo-1" },
+  { "matricula": "10720160023", "nome": "Vitor Nakao Ishii", "idGrupo": "grupo-1" },
+  { "matricula": "10720130022", "nome": "Arthur de Almeida Pegorelli", "idGrupo": "grupo-2" },
+  { "matricula": "10720260101", "nome": "Bruno Baldi Sprano", "idGrupo": "grupo-2" },
+  { "matricula": "10720260151", "nome": "Enzo Cirino Duarte", "idGrupo": "grupo-2" },
+  { "matricula": "10720200149", "nome": "Nathalia Tampelli Guermandi", "idGrupo": "grupo-2" },
+  { "matricula": "10720230045", "nome": "Vinicius Gonçalez de Almeida", "idGrupo": "grupo-2" },
+  { "matricula": "10720190051", "nome": "Eduardo Bartolini Tambara", "idGrupo": "grupo-3" },
+  { "matricula": "10720220174", "nome": "Enzo Inforsato Miranda", "idGrupo": "grupo-3" },
+  { "matricula": "10720250055", "nome": "Felipe Caldo Sanchez", "idGrupo": "grupo-3" },
+  { "matricula": "10720160005", "nome": "Rafael Frederico Laporta", "idGrupo": "grupo-3" },
+  { "matricula": "10720250205", "nome": "Vívian Rodrigues Parreira", "idGrupo": "grupo-3" },
+  { "matricula": "10720220139", "nome": "Ania Pikel Sviatopolk Mirsky", "idGrupo": "grupo-4" },
+  { "matricula": "10720160004", "nome": "Arthur de Almeida Cinalli", "idGrupo": "grupo-4" },
+  { "matricula": "10720160012", "nome": "Carolina Pinheiro Santaniello", "idGrupo": "grupo-4" },
+  { "matricula": "10720170118", "nome": "Julia Pollini Gravina", "idGrupo": "grupo-4" },
+  { "matricula": "10720160006", "nome": "Sofia Frederico Laporta", "idGrupo": "grupo-4" },
+  { "matricula": "10720230186", "nome": "Ana Luiza Dal Ben Bento", "idGrupo": "grupo-5" },
+  { "matricula": "10720160105", "nome": "Beatriz Dezoti da Fonseca", "idGrupo": "grupo-5" },
+  { "matricula": "10720210078", "nome": "Daniele Oliveira Rodrigues", "idGrupo": "grupo-5" },
+  { "matricula": "10720130238", "nome": "Maria Eduarda Modesto de Castro", "idGrupo": "grupo-5" },
+  { "matricula": "10720250135", "nome": "Mariana Ramos de Araújo", "idGrupo": "grupo-5" },
+  { "matricula": "10720120008", "nome": "Sophia de Paulo Aires de Lima", "idGrupo": "grupo-5" }
 ];
 
 const gruposData = [
-  { "id": "grupo-1", "nomeGrupo": "Grupo 1", "membros": ["10720200083", "10720120018", "10720240188", "10720240037", "10720150041"] },
-  { "id": "grupo-2", "nomeGrupo": "Grupo 2", "membros": ["10720150018", "10720240208", "10720200193", "10720240092", "10720150029"] },
-  { "id": "grupo-3", "nomeGrupo": "Grupo 3", "membros": ["10720220150", "10720110206", "10720200093", "10720240052", "10720200219"] },
-  { "id": "grupo-4", "nomeGrupo": "Grupo 4", "membros": ["10720230078", "10720190192", "10720130190", "10720240216", "10720240182"] },
-  { "id": "grupo-5", "nomeGrupo": "Grupo 5", "membros": ["10720120163", "10720210073", "10720240273", "10720160111", "10720130245"] },
-  { "id": "grupo-6", "nomeGrupo": "Grupo 6", "membros": ["10720220191", "10720150138", "10720230047", "10720210224", "10720150143"] },
-  { "id": "grupo-7", "nomeGrupo": "Grupo 7", "membros": ["10720250144", "10720240191", "10720220160", "10720140205", "10720240292"] }
+  { "id": "grupo-1", "nomeGrupo": "Grupo 1", "membros": ["10720220124", "10720220100", "10720200228", "10720160201", "10720160023"] },
+  { "id": "grupo-2", "nomeGrupo": "Grupo 2", "membros": ["10720130022", "10720260101", "10720260151", "10720200149", "10720230045"] },
+  { "id": "grupo-3", "nomeGrupo": "Grupo 3", "membros": ["10720190051", "10720220174", "10720250055", "10720160005", "10720250205"] },
+  { "id": "grupo-4", "nomeGrupo": "Grupo 4", "membros": ["10720220139", "10720160004", "10720160012", "10720170118", "10720160006"] },
+  { "id": "grupo-5", "nomeGrupo": "Grupo 5", "membros": ["10720230186", "10720160105", "10720210078", "10720130238", "10720250135", "10720120008"] }
 ];
 
 // --- FUNÇÃO PARA INSERIR OS DADOS ---
@@ -68,10 +57,41 @@ async function seedDatabase() {
   try {
     console.log('Iniciando o povoamento do banco de dados para o novo semestre...');
 
+    // LIMPEZA DA COLEÇÃO ALUNOS
+    console.log('Limpando a coleção "alunos" antiga...');
+    const alunosSnapshot = await db.collection('alunos').get();
+    const batchAlunos = db.batch();
+    alunosSnapshot.docs.forEach((doc) => {
+      batchAlunos.delete(doc.ref);
+    });
+    await batchAlunos.commit();
+    console.log('Coleção "alunos" limpa!');
+
+    // LIMPEZA DA COLEÇÃO GRUPOS
+    console.log('Limpando a coleção "grupos" antiga...');
+    const gruposSnapshot = await db.collection('grupos').get();
+    const batchGrupos = db.batch();
+    gruposSnapshot.docs.forEach((doc) => {
+      batchGrupos.delete(doc.ref);
+    });
+    await batchGrupos.commit();
+    console.log('Coleção "grupos" limpa!');
+
+    // LIMPEZA DA COLEÇÃO AVALIACOES
+    console.log('Limpando a coleção "avaliacoes" antiga...');
+    const avaliacoesSnapshot = await db.collection('avaliacoes').get();
+    const batchAvaliacoes = db.batch();
+    avaliacoesSnapshot.docs.forEach((doc) => {
+      batchAvaliacoes.delete(doc.ref);
+    });
+    await batchAvaliacoes.commit();
+    console.log('Coleção "avaliacoes" limpa!');
+
     // Inserindo alunos
     console.log('Inserindo novos alunos...');
     for (const aluno of alunosData) {
-      await db.collection('alunos').add(aluno);
+      // Usar a matrícula como ID do documento para evitar duplicidades
+      await db.collection('alunos').doc(aluno.matricula).set(aluno);
     }
     console.log('Novos alunos inseridos com sucesso!');
 
@@ -85,7 +105,7 @@ async function seedDatabase() {
     }
     console.log('Novos grupos inseridos com sucesso!');
 
-    console.log('Povoamento do banco de dados concluído!');
+    console.log('Povoamento do banco de dados concluído com uma base limpa!');
   } catch (error) {
     console.error('Erro ao popular o banco de dados:', error);
   }

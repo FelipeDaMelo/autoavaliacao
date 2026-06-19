@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '../../lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 // --- DEFINIÇÃO DOS TIPOS DE DADOS E CRITÉRIOS ---
 
@@ -24,6 +24,13 @@ type Avaliacao = {
   perguntaFeita?: string;
 };
 
+type Grupo = {
+  id: string;
+  membros: string[];
+  youtubeLink?: string;
+  notasVideo?: number[];
+};
+
 // MODIFICADO: Adicionamos o campo 'hasResponded'
 type AlunoComResultados = Aluno & {
   pontosProcesso: number;
@@ -31,10 +38,23 @@ type AlunoComResultados = Aluno & {
   pergunta: string;
   autoavaliacao: string;
   hasResponded: boolean;
+  youtubeLink?: string;
+  idGrupo?: string;
+  notasVideo?: number[];
 };
 
 const CRITERIOS_PROCESSO = ['comunicacao', 'comprometimento', 'trabalhoEquipe'];
 const CRITERIOS_EXECUCAO = ['qualidade', 'proatividade', 'presenca'];
+
+// --- RUBRICA DO VÍDEO STEAM ---
+const RUBRICA_CRITERIOS = [
+  "Articulação com STEAM e ODS",
+  "Clareza e Criatividade",
+  "Fundamentação e Impacto",
+  "Trabalho em Equipe"
+];
+const VALORES_PERCENTUAIS = [0, 25, 50, 100];
+const VALOR_POR_CRITERIO = 0.625; // 2.5 pontos / 4 critérios
 
 // --- SENHA DE ACESSO ---
 const SENHA_CORRETA = "123456"; // Lembre-se de mudar esta senha
@@ -70,6 +90,9 @@ export default function AdminPage() {
         const avaliacoesSnapshot = await getDocs(collection(db, 'avaliacoes'));
         const listaAvaliacoes: Avaliacao[] = avaliacoesSnapshot.docs.map(doc => doc.data() as Avaliacao);
 
+        const gruposSnapshot = await getDocs(collection(db, 'grupos'));
+        const listaGrupos = gruposSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grupo));
+
         const alunosProcessados = listaAlunos.map(aluno => {
           // MODIFICADO: Lógica para verificar se o aluno já respondeu
           const hasResponded = listaAvaliacoes.some(
@@ -103,14 +126,19 @@ export default function AdminPage() {
             aval => aval.avaliadoMatricula === aval.avaliadorMatricula
           );
 
-          // MODIFICADO: Retorna o objeto completo com o status
+          const grupoDoAluno = listaGrupos.find(g => g.membros && g.membros.includes(aluno.matricula));
+
+          // MODIFICADO: Retorna o objeto completo com o status, link do youtube e rubrica
           return {
             ...aluno,
             pontosProcesso: pontosProcesso,
             pontosExecucao: pontosExecucao,
             pergunta: autoavaliacaoDoc?.perguntaFeita || "Nenhuma pergunta registrada.",
             autoavaliacao: autoavaliacaoDoc?.respostaDissertativa || "Nenhuma resposta enviada.",
-            hasResponded: hasResponded 
+            hasResponded: hasResponded,
+            youtubeLink: grupoDoAluno?.youtubeLink || "",
+            idGrupo: grupoDoAluno?.id || "",
+            notasVideo: grupoDoAluno?.notasVideo || [0, 0, 0, 0]
           };
         });
 
@@ -126,6 +154,34 @@ export default function AdminPage() {
 
     fetchData();
   }, [autenticado]);
+
+  // --- LÓGICA DE AVALIAÇÃO DO VÍDEO ---
+  const handleNotaVideoChange = async (grupoId: string, indexCriterio: number, novaPorcentagem: number) => {
+    if (!grupoId) return;
+    
+    // Atualiza a interface otimisticamente (para todo o grupo)
+    let notasParaSalvar = [0, 0, 0, 0];
+    setAlunos(prevAlunos => prevAlunos.map(aluno => {
+      if (aluno.idGrupo === grupoId) {
+        const novasNotas = [...(aluno.notasVideo || [0, 0, 0, 0])];
+        novasNotas[indexCriterio] = novaPorcentagem;
+        notasParaSalvar = [...novasNotas]; // Guarda para salvar no banco
+        return { ...aluno, notasVideo: novasNotas };
+      }
+      return aluno;
+    }));
+
+    try {
+      // Salva a nova configuração no Firestore do grupo
+      const grupoRef = doc(db, 'grupos', grupoId);
+      await updateDoc(grupoRef, {
+        notasVideo: notasParaSalvar
+      });
+    } catch (err) {
+      console.error("Erro ao salvar a nota do video: ", err);
+      alert("Erro ao salvar a nota do vídeo. As alterações não foram persistidas.");
+    }
+  };
 
   // --- RENDERIZAÇÃO ---
   if (!autenticado) {
@@ -187,6 +243,57 @@ export default function AdminPage() {
                     {aluno.pontosExecucao.toFixed(2)} / 2.5
                   </p>
                 </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm font-semibold text-gray-600 mb-1">Vídeo do Grupo:</p>
+                {aluno.youtubeLink ? (
+                  <>
+                    <a href={aluno.youtubeLink} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1 mb-4">
+                      ▶ Assistir no YouTube
+                    </a>
+                    
+                    {/* CALCULADORA DE RUBRICA */}
+                    <div className="bg-white p-3 rounded border border-gray-200">
+                      <div className="flex justify-between items-center mb-3">
+                        <p className="text-xs font-bold text-gray-700">Avaliação do Professor:</p>
+                        <p className="text-sm font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded">
+                          {((aluno.notasVideo || [0,0,0,0]).reduce((acc, val) => acc + (val / 100) * VALOR_POR_CRITERIO, 0)).toFixed(2)} / 2.50
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {RUBRICA_CRITERIOS.map((criterioNome, idx) => (
+                          <div key={idx} className="flex flex-col">
+                            <span className="text-[10px] uppercase font-bold text-gray-500 mb-1">{criterioNome}</span>
+                            <div className="flex gap-1">
+                              {VALORES_PERCENTUAIS.map(pct => {
+                                const notas = aluno.notasVideo || [0, 0, 0, 0];
+                                // Se não tem nota lançada ainda no banco, o botão de 0% deve ficar ativo como default
+                                const isSelected = (aluno.notasVideo && notas[idx] === pct) || (!aluno.notasVideo && pct === 0);
+                                return (
+                                  <button
+                                    key={pct}
+                                    onClick={() => handleNotaVideoChange(aluno.idGrupo || "", idx, pct)}
+                                    className={`flex-1 text-[11px] py-1 px-1 rounded transition-colors border ${
+                                      isSelected 
+                                      ? 'bg-indigo-600 text-white border-indigo-600 font-bold' 
+                                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    {pct}%
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-red-500 italic">Pendente</p>
+                )}
               </div>
 
               <div className="mt-4 pt-4 border-t flex-grow flex flex-col">

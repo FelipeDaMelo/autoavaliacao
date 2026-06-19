@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '../../lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, addDoc, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, addDoc, limit, updateDoc } from 'firebase/firestore';
 
 import StarRating from '../components/StarRating';
 import { FaRegThumbsUp, FaHourglassHalf } from 'react-icons/fa';
@@ -32,6 +32,8 @@ export default function AvaliacaoPage() {
   const [respostaDissertativa, setRespostaDissertativa] = useState('');
   const [perguntaSorteada, setPerguntaSorteada] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [youtubeLink, setYoutubeLink] = useState('');
+  const [grupoIdState, setGrupoIdState] = useState('');
   
   // --- LÓGICA DE BUSCA E VERIFICAÇÃO ---
   useEffect(() => {
@@ -69,6 +71,11 @@ export default function AvaliacaoPage() {
         const grupoRef = doc(db, 'grupos', grupoId);
         const grupoSnap = await getDoc(grupoRef);
         if (!grupoSnap.exists()) throw new Error("Grupo não encontrado.");
+        
+        setGrupoIdState(grupoId);
+        if (grupoSnap.data().youtubeLink) {
+          setYoutubeLink(grupoSnap.data().youtubeLink);
+        }
         
         const membrosMatriculas: string[] = grupoSnap.data().membros || [];
         const colegasMatriculas = membrosMatriculas.filter(m => m !== matricula);
@@ -134,6 +141,13 @@ export default function AvaliacaoPage() {
           timestamp: new Date()
         });
       }
+
+      if (youtubeLink.trim() && grupoIdState) {
+        await updateDoc(doc(db, 'grupos', grupoIdState), {
+          youtubeLink: youtubeLink.trim()
+        });
+      }
+
       router.push('/sucesso');
     } catch (err) {
       console.error("Erro ao enviar avaliação:", err);
@@ -246,6 +260,26 @@ export default function AvaliacaoPage() {
             </div>
           </section>
        
+          {/* LINK DO VÍDEO DO GRUPO */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">Vídeo do Projeto (YouTube)</h2>
+            <div className="mt-6 p-6 bg-white border border-gray-200 rounded-xl shadow-md">
+              <label htmlFor="youtubeLink" className="block text-gray-800 font-semibold mb-2">
+                Cole o link do vídeo do YouTube (qualquer membro pode enviar ou atualizar o link do grupo)
+              </label>
+              <input
+                type="url"
+                id="youtubeLink"
+                className="block w-full p-3 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={youtubeLink}
+                onChange={(e) => setYoutubeLink(e.target.value)}
+                disabled={isSubmitting}
+              />
+              {youtubeLink && <p className="mt-2 text-sm text-green-600 font-medium">Link atual salvo para o grupo: <a href={youtubeLink} target="_blank" className="underline">{youtubeLink}</a></p>}
+            </div>
+          </section>
+
           <div className="py-4">
             {/* Bloco de erro posicionado corretamente */}
             {error && (
